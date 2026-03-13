@@ -11,6 +11,12 @@ public sealed class PaymentEntity
     /// <summary>Unique payment identifier (GUID).</summary>
     public Guid Id { get; init; } = Guid.NewGuid();
 
+
+    /// <summary>
+    /// The merchant who submitted this payment. 
+    /// </summary>
+    public string MerchantId { get; init; } = string.Empty;
+
     /// <summary>Idempotency key supplied by the merchant on creation.</summary>
     public string? IdempotencyKey { get; init; }
 
