@@ -5,7 +5,7 @@ using PaymentGateway.Api.Services.Auth;
 
 namespace PaymentGateway.Api.Tests.Helpers
 {
-    public static class JwtTokenHelperTests
+    public static class JwtTokenHelper
     {
         public static string Generate(string merchantId = "test-merchant")
         {

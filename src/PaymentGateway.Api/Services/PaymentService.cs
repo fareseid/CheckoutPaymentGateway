@@ -35,7 +35,7 @@ public sealed class PaymentService : IPaymentService
     public async Task<ProcessPaymentResult> ProcessPaymentAsync(
         string merchantId,
         PostPaymentRequest request,
-        string? idempotencyKey,
+        string idempotencyKey,
         CancellationToken cancellationToken = default)
     {
 
@@ -200,7 +200,7 @@ public sealed class PaymentService : IPaymentService
         };
     }
 
-    public async Task<PaymentEntity?> GetPaymentAsync(
+    public async Task<GetPaymentResult?> GetPaymentAsync(
         string merchantId,
         Guid paymentId,
         CancellationToken cancellationToken = default)
@@ -212,14 +212,39 @@ public sealed class PaymentService : IPaymentService
             _logger.LogDebug(
                 "Payment cache hit. MerchantId: {MerchantId} PaymentId: {PaymentId}",
                 merchantId, paymentId);
-            return cached;
+            return new GetPaymentResult
+            {
+                Id = cached?.Id?? Guid.Empty,
+                Status = cached?.Status.ToApiStatus() ?? PaymentStatus.Rejected,
+                CardNumberLastFour = cached?.CardNumberLastFour ?? string.Empty,
+                ExpiryMonth = cached?.ExpiryMonth??0,
+                ExpiryYear = cached?.ExpiryYear??0,
+                Currency = cached?.Currency??string.Empty,
+                Amount = cached?.Amount??0
+            };
         }
 
         var entity = _repository.Get(paymentId, merchantId);
 
-        if (entity is not null)
+        if(entity is null)
+        {
+            return null;
+        }
+        else
+        {
             _cache.Set(cacheKey, entity, CacheDuration);
+        } 
+           
 
-        return await Task.FromResult(entity);
+        return await Task.FromResult(new GetPaymentResult
+        {
+                Id = entity?.Id ?? Guid.Empty,
+                Status = entity?.Status.ToApiStatus() ?? PaymentStatus.Rejected,
+                CardNumberLastFour = entity?.CardNumberLastFour ?? string.Empty,
+                ExpiryMonth = entity?.ExpiryMonth ?? 0,
+                ExpiryYear = entity?.ExpiryYear ?? 0,
+                Currency = entity?.Currency ?? string.Empty,
+                Amount = entity?.Amount ?? 0
+        });
     }
 } 

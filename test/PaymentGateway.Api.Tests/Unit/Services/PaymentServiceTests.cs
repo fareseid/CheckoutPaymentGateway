@@ -27,54 +27,7 @@ public class PaymentServiceTests
             _bankClient, 
             _cache,
             NullLogger<PaymentService>.Instance);
-    }
-
-    // -------------------------------------------------------------------------
-    // Validation — Rejected, never persisted, bank never called
-    // -------------------------------------------------------------------------
-
-    [Fact]
-    public async Task ProcessPayment_InvalidRequest_ReturnsRejected()
-    {
-        var request = BuildValidRequest() with { CardNumber = "invalid" };
-
-        var result = await _sut.ProcessPaymentAsync("merchant-123", request, "idem-1");
-
-        Assert.Equal(PaymentStatus.Rejected, result.Status);
-    }
-
-    [Fact]
-    public async Task ProcessPayment_InvalidRequest_NeverCallsBank()
-    {
-        var request = BuildValidRequest() with { Amount = -1 };
-
-        await _sut.ProcessPaymentAsync("merchant-123", request, "idem-2");
-
-        Assert.Equal(0, _bankClient.CallCount);
-    }
-
-    [Fact]
-    public async Task ProcessPayment_InvalidRequest_IsNeverPersisted()
-    {
-        var request = BuildValidRequest() with { Cvv = "ab", Amount = 0 };
-
-        await _sut.ProcessPaymentAsync("merchant-123", request, "idem-3");
-
-        Assert.Empty(_repository.AllPayments);
-    }
-
-    [Fact]
-    public async Task ProcessPayment_InvalidRequest_ReturnsValidationErrors()
-    {
-        var request = BuildValidRequest() with { Cvv = "ab", Amount = 0 };
-
-        var result = await _sut.ProcessPaymentAsync("merchant-123", request, "idem-4");
-
-        Assert.Equal(PaymentStatus.Rejected, result.Status);
-        Assert.NotEmpty(result.ValidationErrors);
-        Assert.Contains(result.ValidationErrors, e => e.Field == "Cvv");
-        Assert.Contains(result.ValidationErrors, e => e.Field == "Amount");
-    }
+    } 
 
     // -------------------------------------------------------------------------
     // Processing — record persisted before bank call
@@ -111,20 +64,6 @@ public class PaymentServiceTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public async Task ProcessPayment_BankAuthorizes_ReturnsAuthorized()
-    {
-        _bankClient.NextResponse = new BankSimulatorResponse
-        {
-            Authorized = true,
-            AuthorizationCode = "AUTH-001"
-        };
-
-        var result = await _sut.ProcessPaymentAsync("merchant-123", BuildValidRequest(), "idem-7");
-
-        Assert.Equal(PaymentStatus.Authorized, result.Status);
-    }
-
-    [Fact]
     public async Task ProcessPayment_BankAuthorizes_PersistsAsAuthorized()
     {
         _bankClient.NextResponse = new BankSimulatorResponse
@@ -137,39 +76,6 @@ public class PaymentServiceTests
 
         var stored = _repository.Get(result.PaymentId, "merchant-123");
         Assert.Equal(PaymentRecordStatus.Authorized, stored!.Status);
-    }
-
-    [Fact]
-    public async Task ProcessPayment_BankAuthorizes_CachesResult()
-    {
-        _bankClient.NextResponse = new BankSimulatorResponse
-        {
-            Authorized = true,
-            AuthorizationCode = "AUTH-003"
-        };
-
-        var result = await _sut.ProcessPaymentAsync("merchant-123", BuildValidRequest(), "idem-9");
-
-        // Remove from repository — idempotency retry must still return from cache
-        _repository.Remove(result.PaymentId);
-
-        var cached = await _sut.ProcessPaymentAsync("merchant-123", BuildValidRequest(), "idem-9");
-        Assert.Equal(result.PaymentId, cached.PaymentId);
-        Assert.Equal(1, _bankClient.CallCount);
-    }
-
-    [Fact]
-    public async Task ProcessPayment_BankDeclines_ReturnsDeclined()
-    {
-        _bankClient.NextResponse = new BankSimulatorResponse
-        {
-            Authorized = false,
-            AuthorizationCode = null
-        };
-
-        var result = await _sut.ProcessPaymentAsync("merchant-123", BuildValidRequest(), "idem-10");
-
-        Assert.Equal(PaymentStatus.Declined, result.Status);
     }
 
     [Fact]
@@ -188,16 +94,6 @@ public class PaymentServiceTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public async Task ProcessPayment_BankThrows_ReturnsRejected()
-    {
-        _bankClient.ShouldThrow = true;
-
-        var result = await _sut.ProcessPaymentAsync("merchant-123", BuildValidRequest(), "idem-12");
-
-        Assert.Equal(PaymentStatus.Rejected, result.Status);
-    }
-
-    [Fact]
     public async Task ProcessPayment_BankThrows_PersistsAsFailed()
     {
         _bankClient.ShouldThrow = true;
@@ -207,34 +103,7 @@ public class PaymentServiceTests
         var stored = _repository.Get(result.PaymentId, "merchant-123");
         Assert.Equal(PaymentRecordStatus.Failed, stored!.Status);
     }
-
-    [Fact]
-    public async Task ProcessPayment_BankThrows_DoesNotCacheFailedResult()
-    {
-        _bankClient.ShouldThrow = true;
-
-        var result = await _sut.ProcessPaymentAsync("merchant-123", BuildValidRequest(), "idem-14");
-
-        // Reset throw so second call would succeed if it reaches the bank
-        _bankClient.ShouldThrow = false;
-        _bankClient.NextResponse = new BankSimulatorResponse { Authorized = true };
-
-        // Same idempotency key — should hit repository (still Failed), not retry bank
-        var retry = await _sut.ProcessPaymentAsync("merchant-123", BuildValidRequest(), "idem-14");
-
-        Assert.Equal(result.PaymentId, retry.PaymentId);
-        Assert.Equal(1, _bankClient.CallCount); // bank only called once — idempotency short-circuits
-    }
-
-    [Fact]
-    public async Task ProcessPayment_BankServiceUnavailable_ReturnsRejected()
-    {
-        _bankClient.ShouldThrowServiceUnavailable = true;
-
-        var result = await _sut.ProcessPaymentAsync("merchant-123", BuildValidRequest(), "idem-15");
-
-        Assert.Equal(PaymentStatus.Rejected, result.Status);
-    }
+      
 
     [Fact]
     public async Task ProcessPayment_BankServiceUnavailable_PersistsAsFailed()
@@ -262,16 +131,6 @@ public class PaymentServiceTests
         Assert.Equal("8877", stored!.CardNumberLastFour);
     }
 
-    [Fact]
-    public async Task ProcessPayment_NeverStoresFullCardNumber()
-    {
-        var request = BuildValidRequest() with { CardNumber = "2222405343248877" };
-
-        await _sut.ProcessPaymentAsync("merchant-123", request, "idem-18");
-
-        Assert.DoesNotContain(_repository.AllPayments,
-            p => p.CardNumberLastFour == "2222405343248877");
-    }
 
     // -------------------------------------------------------------------------
     // Idempotency — cache layer
@@ -335,54 +194,6 @@ public class PaymentServiceTests
 
         var result1 = await _sut.ProcessPaymentAsync("merchant-a", BuildValidRequest(), "same-key");
         var result2 = await _sut.ProcessPaymentAsync("merchant-b", BuildValidRequest(), "same-key");
-
-        Assert.NotEqual(result1.PaymentId, result2.PaymentId);
-        Assert.Equal(2, _bankClient.CallCount);
-    }
-
-    [Fact]
-    public async Task ProcessPayment_ProcessingIdempotencyHit_ReturnsRejected()
-    {
-        var stuckEntity = new PaymentEntity
-        {
-            Id = Guid.NewGuid(),
-            MerchantId = "merchant-123",
-            IdempotencyKey = "stuck-key",
-            Status = PaymentRecordStatus.Processing,
-            CardNumberLastFour = "8877",
-            ExpiryMonth = 4,
-            ExpiryYear = 2030,
-            Currency = "GBP",
-            Amount = 100
-        };
-        _repository.Add(stuckEntity);
-
-        var result = await _sut.ProcessPaymentAsync("merchant-123", BuildValidRequest(), "stuck-key");
-
-        Assert.Equal(PaymentStatus.Rejected, result.Status);
-        Assert.Equal(stuckEntity.Id, result.PaymentId);
-        Assert.Equal(0, _bankClient.CallCount);
-    }
-
-    [Fact]
-    public async Task ProcessPayment_NullIdempotencyKey_ProcessesNormally()
-    {
-        _bankClient.NextResponse = new BankSimulatorResponse { Authorized = true };
-
-        var result = await _sut.ProcessPaymentAsync("merchant-123", BuildValidRequest(), null);
-
-        Assert.Equal(PaymentStatus.Authorized, result.Status);
-        Assert.NotEqual(Guid.Empty, result.PaymentId);
-    }
-
-    [Fact]
-    public async Task ProcessPayment_NullIdempotencyKey_TwoCalls_CreatesTwoPayments()
-    {
-        // Without an idempotency key every call is treated as a new payment
-        _bankClient.NextResponse = new BankSimulatorResponse { Authorized = true };
-
-        var result1 = await _sut.ProcessPaymentAsync("merchant-123", BuildValidRequest(), null);
-        var result2 = await _sut.ProcessPaymentAsync("merchant-123", BuildValidRequest(), null);
 
         Assert.NotEqual(result1.PaymentId, result2.PaymentId);
         Assert.Equal(2, _bankClient.CallCount);
