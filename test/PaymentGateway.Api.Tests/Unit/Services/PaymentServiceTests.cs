@@ -25,8 +25,7 @@ public class PaymentServiceTests
         _cache = new MemoryCache(Options.Create(new MemoryCacheOptions()));
         _sut = new PaymentService(
             _repository,
-            _bankClient,
-            new PaymentRequestValidator(),
+            _bankClient, 
             _cache,
             NullLogger<PaymentService>.Instance);
     }
@@ -269,8 +268,7 @@ public class PaymentServiceTests
         ExpiryMonth = 4,
         ExpiryYear = 2030,
         Currency = "GBP",
-        Amount = 100,
-        RowVersion = 1
+        Amount = 100
     };
 }
 
@@ -293,14 +291,11 @@ public sealed class FakePaymentsRepository : IPaymentsRepository
         _store.FirstOrDefault(p =>
             p.IdempotencyKey == key && p.MerchantId == merchantId);
 
-    public bool Update(PaymentEntity entity, int expectedRowVersion)
+    public bool Update(PaymentEntity entity)
     {
-        var stored = _store.FirstOrDefault(p => p.Id == entity.Id);
-        if (stored is null || stored.RowVersion != expectedRowVersion)
-            return false;
+        var stored = _store.FirstOrDefault(p => p.Id == entity.Id);  
 
-        _store.Remove(stored);
-        entity.RowVersion = expectedRowVersion + 1;
+        _store.Remove(stored); 
         _store.Add(entity);
         return true;
     }

@@ -40,9 +40,4 @@ public sealed class PaymentEntity
 
     /// <summary>UTC timestamp of when the payment was created.</summary>
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
-
-    /// <summary> 
-    /// Used for optimistic concurrency — callers must echo this value back.
-    /// </summary>
-    public int RowVersion { get; set; } = 1;
 }

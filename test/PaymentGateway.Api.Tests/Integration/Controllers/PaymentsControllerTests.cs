@@ -51,7 +51,14 @@ public class PaymentsControllerTests : IClassFixture<WebApplicationFactory<Progr
     [Fact]
     public async Task Returns404IfPaymentNotFound()
     {
-        var client = _factory.WithJwtSettings().WithRepository().CreateClient().WithAuthHeader();
+        var fake = new FakePaymentService();
+        fake.SetupGetPayment(null);
+
+        var client = _factory
+            .WithService<Program, IPaymentService>(fake)
+            .WithJwtSettings()
+            .CreateClient()
+            .WithAuthHeader(); 
         var response = await client.GetAsync($"/api/v1/payments/{Guid.NewGuid()}");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -72,7 +79,7 @@ public class FakePaymentService : IPaymentService
 {
     private PaymentEntity? _paymentToReturn;
 
-    public void SetupGetPayment(PaymentEntity payment) => _paymentToReturn = payment;
+    public void SetupGetPayment(PaymentEntity? payment) => _paymentToReturn = payment;
 
     public Task<PaymentEntity?> GetPaymentAsync(
         string merchantId,

@@ -20,7 +20,7 @@ public class PaymentsController : ApiControllerBase
     [HttpGet("{id:guid}")] 
     public async Task<ActionResult<PostPaymentResponse?>> GetPaymentAsync(Guid id)
     {
-        var payment = _paymentService.GetPaymentAsync(MerchantId,id);
+        var payment = await _paymentService.GetPaymentAsync(MerchantId,id);
 
         if (payment == null)
         {

@@ -7,5 +7,5 @@ public interface IPaymentsRepository
     void Add(PaymentEntity entity);
     PaymentEntity? Get(Guid id, string merchantId);
     PaymentEntity? GetByIdempotencyKey(string key, string merchantId);
-    bool Update(PaymentEntity entity, int expectedRowVersion);
+    bool Update(PaymentEntity entity);
 }

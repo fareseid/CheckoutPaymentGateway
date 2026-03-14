@@ -5,15 +5,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 using PaymentGateway.Api.Domain.Entities;
 using PaymentGateway.Api.Infrastructure.BankSimulator;
 using PaymentGateway.Api.Infrastructure.Repositories;
-using PaymentGateway.Api.Models.Requests;
-using PaymentGateway.Api.Validation;
+using PaymentGateway.Api.Models.Requests; 
 
 namespace PaymentGateway.Api.Services
 {
     public class PaymentService : IPaymentService
     {
         IPaymentsRepository _repository;
-        public PaymentService(IPaymentsRepository repository, IBankSimulatorClient bankClient, PaymentRequestValidator paymentRequestValidator, IMemoryCache cache,NullLogger<PaymentService> instance) {
+        public PaymentService(IPaymentsRepository repository, IBankSimulatorClient bankClient, IMemoryCache cache,ILogger<PaymentService> instance) {
             _repository = repository;
         }
 

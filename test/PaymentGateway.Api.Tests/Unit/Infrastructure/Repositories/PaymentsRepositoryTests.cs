@@ -22,6 +22,7 @@ public class PaymentsRepositoryTests
 
         Assert.NotNull(result);
         Assert.Equal(entity.Id, result.Id);
+        Assert.Equal(entity.MerchantId, result.MerchantId);
     }
 
     [Fact]
@@ -89,59 +90,8 @@ public class PaymentsRepositoryTests
         var result = _sut.GetByIdempotencyKey("key-abc", "merchant-b");
 
         Assert.Null(result);
-    }
+    } 
 
-    // -------------------------------------------------------------------------
-    // Update (optimistic concurrency)
-    // -------------------------------------------------------------------------
-
-    [Fact]
-    public void Update_CorrectRowVersion_Succeeds()
-    {
-        var entity = BuildEntity();
-        _sut.Add(entity);
-
-        entity.Status = PaymentStatus.Authorized;
-        var success = _sut.Update(entity, expectedRowVersion: 1);
-
-        Assert.True(success);
-    }
-
-    [Fact]
-    public void Update_CorrectRowVersion_IncrementsRowVersion()
-    {
-        var entity = BuildEntity();
-        _sut.Add(entity);
-
-        _sut.Update(entity, expectedRowVersion: 1);
-
-        var updated = _sut.Get(entity.Id, entity.MerchantId);
-        Assert.Equal(2, updated!.RowVersion);
-    }
-
-    [Fact]
-    public void Update_StaleRowVersion_ReturnsFalse()
-    {
-        var entity = BuildEntity();
-        _sut.Add(entity);
-
-        // Simulate concurrent update — row version is now 2
-        _sut.Update(entity, expectedRowVersion: 1);
-
-        // Second caller still holds version 1 — should be rejected
-        var staleSuccess = _sut.Update(entity, expectedRowVersion: 1);
-        Assert.False(staleSuccess);
-    }
-
-    [Fact]
-    public void Update_UnknownPayment_ReturnsFalse()
-    {
-        var entity = BuildEntity();
-
-        var success = _sut.Update(entity, expectedRowVersion: 1);
-
-        Assert.False(success);
-    }
 
     // -------------------------------------------------------------------------
     // Builder
@@ -159,7 +109,6 @@ public class PaymentsRepositoryTests
             ExpiryMonth = 6,
             ExpiryYear = 2030,
             Currency = "GBP",
-            Amount = 1050,
-            RowVersion = 1
+            Amount = 1050
         };
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 using PaymentGateway.Api.Configuration;
+using PaymentGateway.Api.Infrastructure.BankSimulator;
 using PaymentGateway.Api.Infrastructure.Repositories;
 using PaymentGateway.Api.Middleware;
 using PaymentGateway.Api.Models.Requests;
@@ -61,6 +62,7 @@ builder.Services.AddSingleton<IHmacSignatureService, HmacSignatureService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddSingleton<IValidator<PostPaymentRequest>, PaymentRequestValidator>();
 builder.Services.AddSingleton<IPaymentService, PaymentService>();
+builder.Services.AddSingleton<IBankSimulatorClient, BankSimulatorClient>();
 
 // -----------------------------------------------------------------------
 // Controllers + API

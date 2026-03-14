@@ -1,5 +1,4 @@
-﻿// test/PaymentGateway.Api.Tests/Unit/Validation/PaymentRequestValidatorTests.cs
-using PaymentGateway.Api.Models.Requests;
+﻿using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Validation;
 
 namespace PaymentGateway.Api.Tests.Unit.Validation;
