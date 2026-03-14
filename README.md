@@ -97,8 +97,7 @@ All configuration is in `appsettings.json` under `BankSimulator` section.
 
 ### 8. Optimistic concurrency
 
-`PaymentEntity.RowVersion` simulates a database `rowversion` column.
-The repository `Update` method simulates `WHERE id = @id AND row_version = @expected`.
+In real life scenario, we'll rely on the database row version to handle concurrency while relying on the read-committed isolation.
 The application never increments `RowVersion` — that is the database's job.
 A `false` return from `Update` means a concurrent write won — the service logs a warning.
 
@@ -154,17 +153,3 @@ incoming merchant requests only, not outbound bank calls.
 payment by ID. A list endpoint is out of scope for this exercise.
 
 ---
-
-## What would change in production
-
-| Concern | Current | Production |
-|---|---|---|
-| Storage | `List<PaymentEntity>` | PostgreSQL / SQL Server with EF Core |
-| Idempotency store | `IMemoryCache` | Redis (distributed) |
-| Circuit breaker | In-process | Redis-backed or Hystrix-equivalent |
-| Secrets | `appsettings.json` | Azure Key Vault / AWS Secrets Manager |
-| Logging | `ILogger` (console) | Structured logs → ELK / Datadog |
-| Auth token issuance | `JwtTokenService` in tests | Dedicated auth service / OAuth2 |
-| HMAC secret rotation | Single static secret | Secret versioning + grace period |
-| Card data | Last 4 digits only | PCI-DSS compliant vault for full PAN |
-| Retries | None (by design) | Idempotency key at bank level if supported |
