@@ -97,7 +97,7 @@ All configuration is in `appsettings.json` under `BankSimulator` section.
 
 ### 8. Optimistic concurrency
 
-In real life scenario, we'll rely on the database row version to handle concurrency while relying on the read-committed isolation.
+In real life scenario, we'll rely on the database row version and database constraints for the write to handle concurrency while relying on the read-committed isolation for the read.
 The application never increments `RowVersion` — that is the database's job.
 A `false` return from `Update` means a concurrent write won — the service logs a warning.
 

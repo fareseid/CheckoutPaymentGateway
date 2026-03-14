@@ -1,0 +1,32 @@
+meta {
+  name: Post Payment
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://localhost:7092/api/v1/payments
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXJjaGFudF9pZCI6IjEiLCJzdWIiOiIxIiwianRpIjoiMzE3YWRiNjktNzU4MS00YzgwLTkxZmItMzViNGEzYzQxYzJhIiwiaWF0IjoxNzczNTI4NTkyLCJuYmYiOjE3NzM1Mjg1OTIsImV4cCI6MTc3MzUzMjE5MiwiaXNzIjoicGF5bWVudC1nYXRld2F5IiwiYXVkIjoibWVyY2hhbnRzIn0.52MOMNWRHfyLIFnNIW_yqAx7Y9yqn4QdiT6Fb18J0kU
+  Idempotency-Key: 1
+}
+
+body:json {
+  {
+    "cardNumber": "12342224222456",
+    "expiryMonth": 3,
+    "expiryYear": 2028,
+    "currency": "USD",
+    "amount": 1000,
+    "cvv": "222"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

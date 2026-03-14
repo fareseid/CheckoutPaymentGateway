@@ -125,7 +125,7 @@ public class PaymentsControllerTests : IClassFixture<WebApplicationFactory<Progr
         Assert.True(fakeValidator.WasCalled);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(response.Content);
-        Assert.Equal(PaymentStatus.Authorized, body.Status);
+        Assert.Equal("Authorized", body.Status);
         Assert.NotEqual(Guid.Empty, body.Id);
     }
 
@@ -161,7 +161,7 @@ public class PaymentsControllerTests : IClassFixture<WebApplicationFactory<Progr
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(body);
-        Assert.Equal(PaymentStatus.Declined, body.Status);
+        Assert.Equal("Declined", body.Status);
     }
 
     [Fact]

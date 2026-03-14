@@ -62,8 +62,10 @@ builder.Services.AddSingleton<IHmacSignatureService, HmacSignatureService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddSingleton<IValidator<PostPaymentRequest>, PaymentRequestValidator>();
 builder.Services.AddSingleton<IPaymentService, PaymentService>();
-builder.Services.AddHttpClient<BankSimulatorClient>();
-builder.Services.AddSingleton<IBankSimulatorClient, BankSimulatorClient>();
+builder.Services.AddHttpClient<IBankSimulatorClient, BankSimulatorClient>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["BankSimulator:BaseUrl"]!);
+}); 
 
 // -----------------------------------------------------------------------
 // Controllers + API

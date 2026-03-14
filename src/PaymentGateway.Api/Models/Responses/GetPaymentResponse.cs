@@ -7,7 +7,7 @@
 public sealed class GetPaymentResponse
 {
     public Guid Id { get; init; }
-    public PaymentStatus Status { get; init; }
+    public string Status { get; init; } = string.Empty;
     public string CardNumberLastFour { get; init; } = string.Empty;
     public int ExpiryMonth { get; init; }
     public int ExpiryYear { get; init; }

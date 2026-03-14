@@ -14,10 +14,6 @@ public sealed class PaymentsController : ApiControllerBase
     private readonly ILogger<PaymentsController> _logger;
     private readonly IValidator<PostPaymentRequest> _validator;
 
-    private string MerchantId =>
-        User.FindFirstValue("merchant_id")
-        ?? throw new InvalidOperationException(
-            "merchant_id claim missing.");
 
     public PaymentsController(
         IPaymentService paymentService,
@@ -38,8 +34,13 @@ public sealed class PaymentsController : ApiControllerBase
         Guid id,
         CancellationToken cancellationToken)
     {
+
+
+        var merchantId = User.FindFirstValue("merchant_id");
+        if (merchantId is null)
+            return Unauthorized("merchant_id claim missing.");
         _logger.LogInformation(
-            "GetPayment. MerchantId: {MerchantId} PaymentId: {PaymentId}",
+            "GetPayment. MerchantId: {merchantId} PaymentId: {PaymentId}",
             MerchantId, id);
 
         var paymentResult = await _paymentService.GetPaymentAsync(
@@ -106,7 +107,7 @@ public sealed class PaymentsController : ApiControllerBase
         return Ok(new PostPaymentResponse
         {
             Id = result.PaymentId,
-            Status = result.Status,
+            Status = result.Status.ToString(),
             CardNumberLastFour = request.CardNumber[^4..],
             ExpiryMonth = request.ExpiryMonth,
             ExpiryYear = request.ExpiryYear,  
