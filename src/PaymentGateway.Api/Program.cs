@@ -1,10 +1,10 @@
-// Program.cs
 using System.Text;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
-using PaymentGateway.Api.Configuration; 
+using PaymentGateway.Api.Configuration;
+using PaymentGateway.Api.Infrastructure.Repositories;
 using PaymentGateway.Api.Middleware;
 using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Services;
@@ -59,7 +59,8 @@ builder.Services.AddAuthorization();
 // -----------------------------------------------------------------------
 builder.Services.AddSingleton<IHmacSignatureService, HmacSignatureService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
-builder.Services.AddSingleton<IValidator<PostPaymentRequest>, PaymentRequestValidator>(); 
+builder.Services.AddSingleton<IValidator<PostPaymentRequest>, PaymentRequestValidator>();
+builder.Services.AddSingleton<IPaymentService, PaymentService>();
 
 // -----------------------------------------------------------------------
 // Controllers + API

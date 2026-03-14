@@ -1,12 +1,8 @@
 ﻿using System.Net;
-using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
 
 using PaymentGateway.Api.Configuration;
 using PaymentGateway.Api.Models.Requests;

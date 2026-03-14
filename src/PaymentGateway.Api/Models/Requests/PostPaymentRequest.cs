@@ -4,7 +4,7 @@
 /// Incoming payment request from a merchant.
 /// The full card number is accepted here but never stored.
 /// </summary>
-public sealed class PostPaymentRequest
+public sealed record PostPaymentRequest
 {
     /// <summary>
     /// Full card number, 14–19 numeric digits.

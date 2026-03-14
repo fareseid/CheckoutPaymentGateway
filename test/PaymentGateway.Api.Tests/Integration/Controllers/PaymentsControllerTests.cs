@@ -2,7 +2,8 @@
 
 using Microsoft.AspNetCore.Mvc.Testing;
 
-using PaymentGateway.Api.Models.Responses;
+using PaymentGateway.Api.Domain.Entities;
+using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Services;
 using PaymentGateway.Api.Tests.Helpers;
 
@@ -11,18 +12,19 @@ namespace PaymentGateway.Api.Tests;
 public class PaymentsControllerTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Random _random = new(); 
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly WebApplicationFactory<Program> _factory; 
     public PaymentsControllerTests(WebApplicationFactory<Program> factory)
     {
-        _factory = factory;
+        _factory = factory; 
     }
 
-    [Fact]
+    [Fact] 
     public async Task RetrievesAPaymentSuccessfully()
     {
-        var payment = new PostPaymentResponse
+        var paymentId = Guid.NewGuid();
+        var expectedPayment = new PaymentEntity
         {
-            Id = Guid.NewGuid(),
+            Id = paymentId,
             ExpiryYear = _random.Next(2023, 2030),
             ExpiryMonth = _random.Next(1, 12),
             Amount = _random.Next(1, 10000),
@@ -30,11 +32,17 @@ public class PaymentsControllerTests : IClassFixture<WebApplicationFactory<Progr
             Currency = "GBP"
         };
 
-        var repo = new PaymentsRepository();
-        repo.Add(payment);
 
-        var client = _factory.WithJwtSettings().WithRepository(repo).CreateClient().WithAuthHeader();
-        var response = await client.GetAsync($"/api/v1/payments/{payment.Id}");
+        var fake = new FakePaymentService();
+        fake.SetupGetPayment(expectedPayment);
+
+        var client = _factory
+            .WithService<Program, IPaymentService>(fake)
+            .WithJwtSettings()
+            .CreateClient()
+            .WithAuthHeader();
+
+        var response = await client.GetAsync($"/api/v1/payments/{paymentId}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
@@ -58,4 +66,24 @@ public class PaymentsControllerTests : IClassFixture<WebApplicationFactory<Progr
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     } 
+}
+
+public class FakePaymentService : IPaymentService
+{
+    private PaymentEntity? _paymentToReturn;
+
+    public void SetupGetPayment(PaymentEntity payment) => _paymentToReturn = payment;
+
+    public Task<PaymentEntity?> GetPaymentAsync(
+        string merchantId,
+        Guid paymentId,
+        CancellationToken cancellationToken = default)
+        => Task.FromResult(_paymentToReturn);
+
+    public Task<ProcessPaymentResult> ProcessPaymentAsync(
+        string merchantId,
+        PostPaymentRequest request,
+        string? idempotencyKey,
+        CancellationToken cancellationToken = default)
+        => throw new NotImplementedException();
 }

@@ -1,10 +1,9 @@
-﻿using System.Net.Http.Headers;
-
-using Microsoft.AspNetCore.Mvc.Testing;
+﻿using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using PaymentGateway.Api.Services;
+using PaymentGateway.Api.Infrastructure.Repositories;
 namespace PaymentGateway.Api.Tests.Helpers;
 
 public static class TestWebApplicationFactoryExtensions
@@ -42,6 +41,27 @@ public static class TestWebApplicationFactoryExtensions
             });
         });
     }
+
+    public static WebApplicationFactory<TProgram> WithService<TProgram, TService>(
+        this WebApplicationFactory<TProgram> factory,
+        TService implementation)
+        where TProgram : class
+        where TService : class
+    {
+        return factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureTestServices(services =>
+            {
+                var descriptor = services.SingleOrDefault(
+                    d => d.ServiceType == typeof(TService));
+                if (descriptor != null)
+                    services.Remove(descriptor);
+
+                services.AddSingleton(implementation);
+            });
+        });
+    }
+
     public static HttpClient CreateClient(this WebApplicationFactory<Program> factory)
     {
         return factory.CreateClient();

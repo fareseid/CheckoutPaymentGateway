@@ -10,17 +10,17 @@ namespace PaymentGateway.Api.Controllers;
 
 public class PaymentsController : ApiControllerBase
 {
-    private readonly IPaymentsRepository _paymentsRepository;
+    private readonly IPaymentService _paymentService;
 
-    public PaymentsController(IPaymentsRepository paymentsRepository)
+    public PaymentsController(IPaymentService paymentService)
     {
-        _paymentsRepository = paymentsRepository;
+        _paymentService = paymentService;
     }
 
     [HttpGet("{id:guid}")] 
     public async Task<ActionResult<PostPaymentResponse?>> GetPaymentAsync(Guid id)
     {
-        var payment = _paymentsRepository.Get(id);
+        var payment = _paymentService.GetPaymentAsync(MerchantId,id);
 
         if (payment == null)
         {
