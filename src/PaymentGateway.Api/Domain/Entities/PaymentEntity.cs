@@ -1,4 +1,5 @@
 ﻿using PaymentGateway.Api.Models;
+using PaymentGateway.Api.Domain.Enums;
 
 namespace PaymentGateway.Api.Domain.Entities;
 
@@ -21,7 +22,7 @@ public sealed class PaymentEntity
     public string? IdempotencyKey { get; init; }
 
     /// <summary>Outcome: Authorized, Declined, or Rejected.</summary>
-    public PaymentStatus Status { get; set; }
+    public PaymentRecordStatus Status { get; set; }
 
     /// <summary>Last four digits of the card number only.</summary>
     public string CardNumberLastFour { get; init; } = string.Empty;
@@ -40,4 +41,7 @@ public sealed class PaymentEntity
 
     /// <summary>UTC timestamp of when the payment was created.</summary>
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
+
+    /// <summary>UTC timestamp of when the payment was last updated.</summary>
+    public DateTimeOffset LastUpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

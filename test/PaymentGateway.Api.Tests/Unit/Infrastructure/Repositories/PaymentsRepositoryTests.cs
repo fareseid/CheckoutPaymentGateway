@@ -1,4 +1,5 @@
-﻿using PaymentGateway.Api.Domain.Entities; 
+﻿using PaymentGateway.Api.Domain.Entities;
+using PaymentGateway.Api.Domain.Enums;
 using PaymentGateway.Api.Infrastructure.Repositories;
 using PaymentGateway.Api.Models; 
 
@@ -104,7 +105,7 @@ public class PaymentsRepositoryTests
             Id = Guid.NewGuid(),
             MerchantId = merchantId,
             IdempotencyKey = idempotencyKey,
-            Status = PaymentStatus.Declined,
+            Status = PaymentRecordStatus.Declined,
             CardNumberLastFour = "1234",
             ExpiryMonth = 6,
             ExpiryYear = 2030,

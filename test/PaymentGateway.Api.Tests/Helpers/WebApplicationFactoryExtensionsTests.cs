@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PaymentGateway.Api.Infrastructure.Repositories;
 namespace PaymentGateway.Api.Tests.Helpers;
 
-public static class TestWebApplicationFactoryExtensions
+public static class WebApplicationFactoryExtensionsTests
 {
 
     public static WebApplicationFactory<Program> WithJwtSettings(this WebApplicationFactory<Program> factory)
@@ -69,7 +69,7 @@ public static class TestWebApplicationFactoryExtensions
 
     internal static HttpClient WithAuthHeader(this HttpClient client)
     {
-        client.DefaultRequestHeaders.Add("Authorization", "Bearer " + TestJwtTokenHelper.Generate());
+        client.DefaultRequestHeaders.Add("Authorization", "Bearer " + JwtTokenHelperTests.Generate());
         return client;
     }
 
